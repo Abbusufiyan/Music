@@ -1,0 +1,85 @@
+-- Music Streaming App Database Schema
+-- Run with: mysql -u <user> -p < /path/to/schema.sql
+
+CREATE DATABASE IF NOT EXISTS `music_app` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `music_app`;
+
+-- Users
+CREATE TABLE users (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  email VARCHAR(100) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- Artists
+CREATE TABLE artists (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  image_url VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- Albums
+CREATE TABLE albums (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  cover_url VARCHAR(255),
+  artist_id INT UNSIGNED NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Songs
+CREATE TABLE songs (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(150) NOT NULL,
+  artist_id INT UNSIGNED NOT NULL,
+  album_id INT UNSIGNED NOT NULL,
+  audio_url VARCHAR(255) NOT NULL,
+  cover_url VARCHAR(255),
+  duration INT UNSIGNED,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE CASCADE,
+  FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Likes (many-to-many between users and songs)
+CREATE TABLE likes (
+  user_id INT UNSIGNED NOT NULL,
+  song_id INT UNSIGNED NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, song_id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Play History
+CREATE TABLE play_history (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNSIGNED NOT NULL,
+  song_id INT UNSIGNED NOT NULL,
+  played_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Playlists
+CREATE TABLE playlists (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  user_id INT UNSIGNED NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Playlist Songs (many-to-many between playlists and songs)
+CREATE TABLE playlist_songs (
+  playlist_id INT UNSIGNED NOT NULL,
+  song_id INT UNSIGNED NOT NULL,
+  PRIMARY KEY (playlist_id, song_id),
+  FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE,
+  FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+

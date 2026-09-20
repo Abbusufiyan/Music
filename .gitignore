@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment variables & Secret files
+.env
+.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.key
+
+# Google Credentials & Service Account Keys
+**/credentials/
+credentials/
+google-service-account.json
+**/google-service-account.json
+
+# Raw Media Files (Streamed directly via Google Drive API)
+*.mp3
+music-assets/songs/
+
+# Build & Output files
+dist/
+**/dist/
+dist-ssr/
+build/
+**/build/
+out/
+
+# Logs & Temporary Data
+*.log
+**/logs/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.tmp
+*.temp
+drive_dump.html
+**/drive_dump.html
+
+# Operating System & IDE Files
+.DS_Store
+Thumbs.db
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Local machine task logs & cache
+.system_generated/
+.gemini/

@@ -1,0 +1,188 @@
+.carousel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  touch-action: none;
+  cursor: grab;
+}
+
+.carousel--dragging {
+  cursor: grabbing;
+}
+
+.carousel--dragging .carousel__item {
+  transition: none;
+}
+
+.carousel__stage {
+  perspective: 1400px;
+  perspective-origin: 50% 45%;
+  height: clamp(220px, 38vw, 380px);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.15s ease-out;
+}
+
+.carousel__tunnel {
+  position: relative;
+  width: clamp(180px, 28vw, 280px);
+  height: clamp(180px, 28vw, 280px);
+  transform-style: preserve-3d;
+}
+
+.carousel__item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  margin-top: calc(clamp(180px, 28vw, 280px) / -2);
+  margin-left: calc(clamp(180px, 28vw, 280px) / -2);
+  transition: transform 0.75s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.75s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.75s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+  transform-style: preserve-3d;
+}
+
+.carousel__cover-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-md);
+  overflow: visible;
+}
+
+.carousel__cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7);
+}
+
+.carousel__item--active .carousel__cover {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.8),
+    0 0 60px rgba(120, 60, 180, 0.15);
+}
+
+.carousel__glow {
+  position: absolute;
+  inset: -30%;
+  background: radial-gradient(circle, rgba(120, 60, 180, 0.2) 0%, transparent 65%);
+  filter: blur(30px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.carousel__reflection {
+  position: absolute;
+  bottom: -35%;
+  left: 10%;
+  right: 10%;
+  height: 35%;
+  background: linear-gradient(to bottom, rgba(120, 60, 180, 0.12), transparent);
+  filter: blur(24px);
+  transform: scaleY(-0.4);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.carousel__info {
+  text-align: center;
+  margin-top: clamp(1.5rem, 4vw, 2.5rem);
+  pointer-events: none;
+}
+
+.carousel__title {
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.35rem;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.carousel__artist {
+  font-size: clamp(0.875rem, 2vw, 1rem);
+  font-weight: 400;
+  color: var(--color-text-muted);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.01em;
+}
+
+.carousel__genre {
+  display: inline-block;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--color-text-subtle);
+}
+
+.carousel__dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-top: clamp(1rem, 3vw, 1.5rem);
+}
+
+.carousel__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.15);
+  padding: 0;
+  transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.carousel__dot--active {
+  background: rgba(255, 255, 255, 0.7);
+  transform: scale(1.3);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+}
+
+.carousel__dot:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+@media (max-width: 768px) {
+  .carousel__stage {
+    perspective: 900px;
+    height: clamp(180px, 48vw, 260px);
+  }
+
+  .carousel__tunnel {
+    width: clamp(140px, 42vw, 200px);
+    height: clamp(140px, 42vw, 200px);
+  }
+
+  .carousel__item {
+    margin-top: calc(clamp(140px, 42vw, 200px) / -2);
+    margin-left: calc(clamp(140px, 42vw, 200px) / -2);
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel__stage {
+    perspective: 700px;
+  }
+
+  .carousel__tunnel {
+    width: clamp(120px, 44vw, 170px);
+    height: clamp(120px, 44vw, 170px);
+  }
+
+  .carousel__item {
+    margin-top: calc(clamp(120px, 44vw, 170px) / -2);
+    margin-left: calc(clamp(120px, 44vw, 170px) / -2);
+  }
+}
