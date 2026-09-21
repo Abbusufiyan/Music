@@ -2,6 +2,7 @@ import { ArrowRight } from 'lucide-react'
 import { NEW_RELEASES } from '../../data/musicData'
 import { useApp } from '../../context/AppContext'
 import { PlayButton } from '../ui/PlayButton'
+import { resolveApiUrl } from '../../api/apiClient'
 
 export function NewReleases() {
   const { playSong, currentSong, isPlaying, togglePlayPause, allSongs } = useApp()
@@ -17,10 +18,10 @@ export function NewReleases() {
         id: `nr-${song.id}`,
         title: song.title,
         subtitle: song.artist || 'Arijit Singh',
-        image: `/api/images/song/${song.id}`,
+        image: resolveApiUrl(song.artwork || `/api/images/song/${song.id}`),
         song: song,
       }))
-    : NEW_RELEASES
+    : NEW_RELEASES.map(r => ({ ...r, image: resolveApiUrl(r.image) }))
 
   return (
     <section

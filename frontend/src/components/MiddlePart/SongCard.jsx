@@ -1,6 +1,7 @@
 import { Play, Pause, MoreVertical, Plus, Heart, X } from 'lucide-react'
 import { useApp } from '../../context/AppContext'
 import { useState, useRef, useEffect } from 'react'
+import { resolveApiUrl } from '../../api/apiClient'
 
 export default function SongCard({ song, onRemove }) {
   const {
@@ -86,7 +87,7 @@ export default function SongCard({ song, onRemove }) {
       {/* Cover Image Container */}
       <div className="relative w-full aspect-square mb-3 overflow-hidden rounded-xl bg-white/5 shrink-0">
         <img
-          src={song.artwork}
+          src={resolveApiUrl(song.artwork)}
           alt={song.title}
           className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
           onError={(e) => {

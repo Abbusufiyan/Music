@@ -8,7 +8,7 @@ import {
 } from 'react'
 import { ALL_SONGS as FALLBACK_SONGS } from '../data/musicData'
 import { authService, songService, playlistService, likeService, activityService } from '../api/services'
-import { getToken, setToken } from '../api/apiClient'
+import { getToken, setToken, resolveApiUrl } from '../api/apiClient'
 import SONGS_META from '../../../music-assets/songs.json'
 
 const AppContext = createContext(null)
@@ -66,8 +66,8 @@ export function formatSongObject(s) {
     artist,
     album,
     duration: Number(s.duration) || 180,
-    artwork,
-    audioUrl,
+    artwork: resolveApiUrl(artwork),
+    audioUrl: resolveApiUrl(audioUrl),
   };
 }
 

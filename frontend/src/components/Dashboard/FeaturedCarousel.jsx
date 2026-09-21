@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, MoreHorizontal, Plus, Play, Pause } from 'lucide-react'
 import { FEATURED_SLIDES } from '../../data/musicData'
 import { useApp } from '../../context/AppContext'
+import { resolveApiUrl } from '../../api/apiClient'
 
 const AUTOPLAY_INTERVAL = 5000
 
@@ -69,7 +70,7 @@ export function FeaturedCarousel() {
           }`}
         >
           <img
-            src={s.image}
+            src={resolveApiUrl(s.image)}
             alt={s.title}
             className="absolute inset-0 w-full h-full object-cover"
           />

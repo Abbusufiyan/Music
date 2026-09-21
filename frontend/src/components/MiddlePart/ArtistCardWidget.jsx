@@ -1,6 +1,7 @@
 import { useApp } from '../../context/AppContext'
 import { ARTISTS } from '../../data/musicData'
 import { User, ChevronRight } from 'lucide-react'
+import { resolveApiUrl } from '../../api/apiClient'
 
 function normalizeName(name) {
   if (!name) return ''
@@ -124,7 +125,7 @@ export default function ArtistCardWidget() {
       {/* Small Compact Circular Artist Portrait */}
       <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden shadow-lg border-2 border-white/20 mb-2.5 shrink-0 bg-black/40">
         <img
-          src={artist.image}
+          src={resolveApiUrl(artist.image)}
           alt={artist.name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           onError={(e) => {

@@ -1,6 +1,7 @@
 import { RECENTLY_PLAYED } from '../../data/musicData'
 import { useApp } from '../../context/AppContext'
 import { PlayButton } from '../ui/PlayButton'
+import { resolveApiUrl } from '../../api/apiClient'
 
 export function RecentlyPlayed() {
   const { playSong, currentSong, isPlaying, togglePlayPause, allSongs } = useApp()
@@ -11,10 +12,10 @@ export function RecentlyPlayed() {
         id: song.id,
         title: song.title,
         category: song.artist || 'Google Drive',
-        image: song.artwork,
+        image: resolveApiUrl(song.artwork),
         song,
       }))
-    : RECENTLY_PLAYED
+    : RECENTLY_PLAYED.map(r => ({ ...r, image: resolveApiUrl(r.image) }))
 
   const songsQueue = items.map(i => i.song)
 

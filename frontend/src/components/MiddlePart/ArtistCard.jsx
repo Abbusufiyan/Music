@@ -1,4 +1,5 @@
 import { Star } from 'lucide-react'
+import { resolveApiUrl } from '../../api/apiClient'
 
 export default function ArtistCard({ artist, onClick }) {
   if (!artist) return null
@@ -34,7 +35,7 @@ export default function ArtistCard({ artist, onClick }) {
       {/* 1. Artist Image */}
       <div className="relative w-full aspect-square mb-3.5 overflow-hidden rounded-xl bg-white/5 shrink-0">
         <img
-          src={artist.image}
+          src={resolveApiUrl(artist.image)}
           alt={artist.name}
           className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
           onError={(e) => {

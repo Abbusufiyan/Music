@@ -1,6 +1,7 @@
 import { CATEGORY_CARDS, ALL_SONGS } from '../../data/musicData'
 import { useApp } from '../../context/AppContext'
 import { PlayButton } from '../ui/PlayButton'
+import { resolveApiUrl } from '../../api/apiClient'
 
 export function CategoryCards() {
   const {
@@ -94,7 +95,7 @@ export function CategoryCards() {
             >
               {/* Background Image */}
               <img
-                src={card.image}
+                src={resolveApiUrl(card.image)}
                 alt={card.title}
                 className="
                   absolute
