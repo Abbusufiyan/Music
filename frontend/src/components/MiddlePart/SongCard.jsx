@@ -91,19 +91,8 @@ export default function SongCard({ song, onRemove }) {
           alt={song.title}
           className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
           onError={(e) => {
-            console.warn('[IMAGE LOG] Song image failed to load:', {
-              id: song.id,
-              title: song.title,
-              artist: song.artist,
-              imageUrl: resolveApiUrl(song.artwork),
-            })
-            const initials = (song.title || 'Track')
-              .split(' ')
-              .slice(0, 2)
-              .map((w) => w[0])
-              .join('')
-              .toUpperCase()
-            e.currentTarget.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect width="400" height="400" rx="24" fill="%23312e81"/><text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" fill="white" font-size="64" font-weight="bold">${initials}</text></svg>`
+            e.currentTarget.src =
+              'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop'
           }}
         />
 

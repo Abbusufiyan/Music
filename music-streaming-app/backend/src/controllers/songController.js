@@ -21,23 +21,18 @@ const SELECT_SONG_SQL = `
   LEFT JOIN albums al ON s.album_id = al.id
 `;
 
+// Helper to format song object for client
 function formatSong(song) {
   if (!song) return song;
-  const audioUrl = `/api/songs/${song.id}/stream`;
-  const artworkUrl = `/api/images/song/${song.id}`;
+  let audioUrl = song.audioUrl;
+
+  // Format stream endpoint for client audio tag playback
+  audioUrl = `/api/songs/${song.id}/stream`;
 
   return {
     ...song,
     id: String(song.id),
-    title: song.title,
-    artist: song.artist || 'Google Drive Artist',
-    artistId: song.artistId ? String(song.artistId) : null,
-    artistImage: song.artistId ? `/api/images/artist/${song.artistId}` : null,
-    album: song.albumName || 'Album',
-    albumId: song.albumId ? String(song.albumId) : null,
-    albumImage: artworkUrl,
-    artwork: artworkUrl,
-    cover: artworkUrl,
+    artwork: `/api/images/song/${song.id}`,
     audioUrl,
   };
 }

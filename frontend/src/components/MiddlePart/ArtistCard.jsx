@@ -39,18 +39,8 @@ export default function ArtistCard({ artist, onClick }) {
           alt={artist.name}
           className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
           onError={(e) => {
-            console.warn('[IMAGE LOG] Artist image failed to load:', {
-              id: artist.id,
-              name: artist.name,
-              imageUrl: resolveApiUrl(artist.image),
-            })
-            const initials = (artist.name || 'Artist')
-              .split(' ')
-              .slice(0, 2)
-              .map((w) => w[0])
-              .join('')
-              .toUpperCase()
-            e.currentTarget.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect width="400" height="400" rx="200" fill="%234f46e5"/><text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" fill="white" font-size="64" font-weight="bold">${initials}</text></svg>`
+            e.currentTarget.src =
+              'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&h=400&fit=crop'
           }}
         />
 
