@@ -64,7 +64,11 @@ export function setToken(token) {
 }
 
 async function request(endpoint, options = {}) {
-  const url = `${BASE_URL}${endpoint}`;
+  let cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  if (cleanEndpoint.startsWith('/api/')) {
+    cleanEndpoint = cleanEndpoint.slice(4);
+  }
+  const url = `${BASE_URL}${cleanEndpoint}`;
   const token = getToken();
 
   const headers = {
