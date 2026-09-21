@@ -107,42 +107,75 @@ async function getImageStream(category, key) {
   // 1. Direct filename match
   let item = catalog[searchKey];
 
-  // 2. Multi-image rotation for Nusrat Fateh Ali Khan songs/artists
-  if (!item && (searchKey.includes('nusrat') || searchKey.includes('nfak') || /^(3[5-9]|4[0-9]|50)$/.test(searchKey))) {
-    const nfakImages = Object.values(catalog).filter(i => i.name.toLowerCase().includes('nusrat'));
-    if (nfakImages.length > 0) {
-      const numericId = parseInt(searchKey.replace(/\D/g, ''), 10) || 0;
-      item = nfakImages[numericId % nfakImages.length];
+  // 2. Artist-specific alias resolution
+  if (!item && category === 'artist') {
+    const artistAliasMap = {
+      'ar rahman': 'ar rahman.jpeg',
+      'ar-rahman': 'ar rahman.jpeg',
+      'a.r. rahman': 'ar rahman.jpeg',
+      'a.r. rahman / mohit chauhan': 'ar rahman.jpeg',
+      'atif aslam': 'atif-aslam.jpeg',
+      'atif-aslam': 'atif-aslam.jpeg',
+      'arijit singh': 'arijit_singh.jpeg',
+      'arijit-singh': 'arijit_singh.jpeg',
+      'nusrat fateh ali khan': 'nusrat fateh ali khan.jpeg',
+      'nusrat-fateh-ali-khan': 'nusrat fateh ali khan.jpeg',
+      'ustad nusrat fateh ali khan': 'nusrat fateh ali khan.jpeg',
+      'nfak': 'nusrat fateh ali khan.jpeg',
+      'anuv jain': 'anuv-jain.jpeg',
+      'anuv-jain': 'anuv-jain.jpeg',
+      'javed ali': 'javed ali.jpeg',
+      'javed-ali': 'javed ali.jpeg',
+      'mohamad rafi': 'mohamad rafi _.jpeg',
+      'mohamad-rafi': 'mohamad rafi _.jpeg',
+      'mohammed rafi': 'mohamad rafi _.jpeg',
+      'mohammed-rafi': 'mohamad rafi _.jpeg',
+      'sonu nigam': 'sonu migum.webp',
+      'sonu-nigam': 'sonu migum.webp',
+      'sonu migum': 'sonu migum.webp',
+      'dua': 'dua.jpeg',
+      'dua lipa': 'dua.jpeg',
+      'dua-lipa': 'dua.jpeg',
+      'kk': 'kk.jpeg'
+    };
+    if (artistAliasMap[searchKey]) {
+      item = catalog[artistAliasMap[searchKey]];
+    }
+    if (!item && (searchKey.includes('nusrat') || searchKey.includes('nfak'))) {
+      const nfakImages = Object.values(catalog).filter(i => i.name.toLowerCase().includes('nusrat'));
+      if (nfakImages.length > 0) item = nfakImages[0];
     }
   }
 
-  // 3. Fuzzy match by searchKey across specified catalog or homeImages fallback
+  // 3. Strict Title Matching for Songs (without cross-catalog fallback to homeImages)
   if (!item) {
-    const cleanKey = searchKey
-      .replace(/^[0-9]+\.\s*/, '')
-      .replace(/aa/g, 'a')
-      .replace(/[^a-z0-9]/g, '');
+    const rawClean = searchKey.replace(/^[0-9]+\.\s*/, '').trim();
+    const cleanNorm = rawClean.replace(/aa/g, 'a').replace(/[^a-z0-9]/g, '');
 
-    let entry = Object.values(catalog).find(i => {
-      const iClean = i.name
-        .toLowerCase()
-        .replace(/\.(jpeg|jpg|png|webp)$/i, '')
-        .replace(/by.*$/i, '')
-        .replace(/aa/g, 'a')
-        .replace(/[^a-z0-9]/g, '');
-      return iClean.includes(cleanKey) || cleanKey.includes(iClean);
-    });
-    if (!entry && category !== 'home') {
-      entry = Object.values(driveImageCache.homeImages).find(i => {
-        const iClean = i.name
-          .toLowerCase()
-          .replace(/\.(jpeg|jpg|png|webp)$/i, '')
-          .replace(/aa/g, 'a')
-          .replace(/[^a-z0-9]/g, '');
-        return iClean.includes(cleanKey) || cleanKey.includes(iClean);
+    if (cleanNorm.length >= 2) {
+      let entry = Object.values(catalog).find(i => {
+        const baseName = i.name.toLowerCase().replace(/\.(jpeg|jpg|png|webp)$/i, '');
+        // Extract song title portion before 'by' or '-by-'
+        const songPart = baseName.split(/[-_\s]+by[-_\s]+/i)[0].split(/by[-_\s]+/i)[0];
+        const songNorm = songPart.replace(/aa/g, 'a').replace(/[^a-z0-9]/g, '');
+        return songNorm === cleanNorm || (songNorm.length >= 3 && cleanNorm.length >= 3 && songNorm === cleanNorm);
       });
+
+      // Secondary fallback within same catalog if exact songPart match missed
+      if (!entry) {
+        entry = Object.values(catalog).find(i => {
+          const iClean = i.name
+            .toLowerCase()
+            .replace(/\.(jpeg|jpg|png|webp)$/i, '')
+            .replace(/by.*$/i, '')
+            .replace(/aa/g, 'a')
+            .replace(/[^a-z0-9]/g, '');
+          return (iClean.length >= 3 && cleanNorm.length >= 3 && (iClean === cleanNorm || cleanNorm.startsWith(iClean)));
+        });
+      }
+
+      if (entry) item = entry;
     }
-    if (entry) item = entry;
   }
 
   if (!item) {
