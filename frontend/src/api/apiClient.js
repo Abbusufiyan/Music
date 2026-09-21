@@ -21,34 +21,32 @@ export function resolveApiUrl(url) {
   if (!url || typeof url !== 'string') return url;
   const trimmed = url.trim();
 
-  // Keep absolute URLs (http://, https://, data:, blob:) unchanged
-  if (/^(https?:|data:|blob:)/i.test(trimmed)) {
+  // Keep data: or blob: unchanged
+  if (/^(data:|blob:)/i.test(trimmed)) {
     return trimmed;
   }
 
   const base = getRawBaseUrl(); // e.g. "https://music-production-03ab.up.railway.app/api"
+  let resolved = trimmed;
 
-  if (trimmed.startsWith('/api/')) {
-    if (base.endsWith('/api')) {
-      const rootOrigin = base.slice(0, -4);
-      return `${rootOrigin}${trimmed}`;
+  if (!/^(https?:)/i.test(trimmed)) {
+    if (trimmed.startsWith('/api/')) {
+      resolved = base.endsWith('/api') ? `${base.slice(0, -4)}${trimmed}` : `${base}${trimmed}`;
+    } else if (trimmed.startsWith('api/')) {
+      resolved = base.endsWith('/api') ? `${base.slice(0, -4)}/${trimmed}` : `${base}/${trimmed}`;
+    } else {
+      const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+      resolved = base.endsWith('/api') ? `${base}${cleanPath}` : `${base}/api${cleanPath}`;
     }
-    return `${base}${trimmed}`;
   }
 
-  if (trimmed.startsWith('api/')) {
-    if (base.endsWith('/api')) {
-      const rootOrigin = base.slice(0, -4);
-      return `${rootOrigin}/${trimmed}`;
-    }
-    return `${base}/${trimmed}`;
+  // Append cache buster v=2 for image URLs so client browsers fetch fresh real artwork instead of stale cached SVG placeholders
+  if (resolved.includes('/api/images/') && !resolved.includes('v=')) {
+    const sep = resolved.includes('?') ? '&' : '?';
+    resolved = `${resolved}${sep}v=2`;
   }
 
-  const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
-  if (base.endsWith('/api')) {
-    return `${base}${cleanPath}`;
-  }
-  return `${base}/api${cleanPath}`;
+  return resolved;
 }
 
 export function getToken() {

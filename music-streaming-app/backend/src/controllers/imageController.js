@@ -85,7 +85,7 @@ exports.getSongImage = async (req, res, next) => {
 
     const svg = generateSVGPlaceholder(cleanTitle, artistName, 'song');
     res.setHeader('Content-Type', 'image/svg+xml');
-    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
     return res.status(200).send(svg);
   } catch (err) {
     next(err);
@@ -130,7 +130,7 @@ exports.getArtistImage = async (req, res, next) => {
 
     const svg = generateSVGPlaceholder(artistName, '', 'artist');
     res.setHeader('Content-Type', 'image/svg+xml');
-    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
     return res.status(200).send(svg);
   } catch (err) {
     next(err);
@@ -153,7 +153,7 @@ exports.getHomeImage = async (req, res, next) => {
     console.warn('[IMAGE LOG] Home image not found on disk, serving SVG fallback:', { imageName });
     const svg = generateSVGPlaceholder(imageName, '', 'song');
     res.setHeader('Content-Type', 'image/svg+xml');
-    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
     return res.status(200).send(svg);
   } catch (err) {
     next(err);
