@@ -1,5 +1,6 @@
+import { useMemo } from 'react'
 import { RECENTLY_PLAYED } from '../../data/musicData'
-import { useApp } from '../../context/AppContext'
+import { useApp, findMatchingSong } from '../../context/AppContext'
 import { PlayButton } from '../ui/PlayButton'
 import { resolveApiUrl } from '../../api/apiClient'
 
@@ -7,15 +8,29 @@ export function RecentlyPlayed() {
   const { playSong, currentSong, isPlaying, togglePlayPause, allSongs } = useApp()
 
   // Use allSongs from context (including Google Drive songs) if present, falling back to static items
-  const items = (allSongs && allSongs.length > 0)
-    ? allSongs.slice(0, 8).map(song => ({
+  const items = useMemo(() => {
+    if (allSongs && allSongs.length > 0) {
+      return allSongs.slice(0, 8).map((song) => ({
         id: song.id,
         title: song.title,
         category: song.artist || 'Google Drive',
         image: resolveApiUrl(song.artwork),
         song,
-      }))
-    : RECENTLY_PLAYED.map(r => ({ ...r, image: resolveApiUrl(r.image) }))
+      }));
+    }
+    return RECENTLY_PLAYED.map((r) => {
+      const dbMatch = findMatchingSong(r.song, allSongs);
+      const songToUse = dbMatch || r.song;
+      return {
+        ...r,
+        id: songToUse.id,
+        title: songToUse.title,
+        category: songToUse.artist || r.category,
+        image: resolveApiUrl(songToUse.artwork),
+        song: songToUse,
+      };
+    });
+  }, [allSongs]);
 
   const songsQueue = items.map(i => i.song)
 

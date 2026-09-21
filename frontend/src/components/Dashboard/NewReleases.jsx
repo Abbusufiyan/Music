@@ -1,27 +1,27 @@
+import { useMemo } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { NEW_RELEASES } from '../../data/musicData'
-import { useApp } from '../../context/AppContext'
+import { useApp, findMatchingSong } from '../../context/AppContext'
 import { PlayButton } from '../ui/PlayButton'
 import { resolveApiUrl } from '../../api/apiClient'
 
 export function NewReleases() {
   const { playSong, currentSong, isPlaying, togglePlayPause, allSongs } = useApp()
 
-  // 1. Filter real Arijit Singh songs from DB allSongs array
-  const dbArijitSongs = (allSongs || []).filter(
-    (s) => s && s.artist && s.artist.toLowerCase().includes('arijit')
-  )
-
-  // 2. Build list of 3 items (from DB or NEW_RELEASES fallback)
-  const items = dbArijitSongs.length >= 3
-    ? dbArijitSongs.slice(0, 3).map((song) => ({
-        id: `nr-${song.id}`,
-        title: song.title,
-        subtitle: song.artist || 'Arijit Singh',
-        image: resolveApiUrl(song.artwork || `/api/images/song/${song.id}`),
-        song: song,
-      }))
-    : NEW_RELEASES.map(r => ({ ...r, image: resolveApiUrl(r.image) }))
+  const items = useMemo(() => {
+    return NEW_RELEASES.map((release) => {
+      const dbMatch = findMatchingSong(release.song, allSongs);
+      const songToUse = dbMatch || release.song;
+      return {
+        ...release,
+        id: `nr-${songToUse.id}`,
+        title: songToUse.title,
+        subtitle: songToUse.artist || release.subtitle,
+        image: resolveApiUrl(songToUse.artwork || `/api/images/song/${songToUse.id}`),
+        song: songToUse,
+      };
+    });
+  }, [allSongs]);
 
   return (
     <section

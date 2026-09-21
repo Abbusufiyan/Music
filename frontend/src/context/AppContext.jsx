@@ -30,6 +30,31 @@ if (Array.isArray(SONGS_META)) {
   })
 }
 
+export function findMatchingSong(songOrTitle, songsList = []) {
+  if (!songOrTitle || !Array.isArray(songsList) || songsList.length === 0) return null;
+
+  const searchId = typeof songOrTitle === 'object' ? String(songOrTitle.id || '') : String(songOrTitle);
+  const searchTitle = typeof songOrTitle === 'object' ? (songOrTitle.title || '') : String(songOrTitle);
+
+  // 1. Direct ID match
+  if (searchId) {
+    const matchId = songsList.find(s => String(s.id) === searchId);
+    if (matchId) return matchId;
+  }
+
+  // 2. Title matching
+  const cleanSearchTitle = searchTitle.replace(/^\d+\.\s*/, '').toLowerCase().trim();
+  if (cleanSearchTitle) {
+    const matchTitle = songsList.find(s => {
+      const sTitle = (s.title || '').replace(/^\d+\.\s*/, '').toLowerCase().trim();
+      return sTitle === cleanSearchTitle || (sTitle.length >= 3 && cleanSearchTitle.length >= 3 && (sTitle.includes(cleanSearchTitle) || cleanSearchTitle.includes(sTitle)));
+    });
+    if (matchTitle) return matchTitle;
+  }
+
+  return null;
+}
+
 export function formatSongObject(s) {
   if (!s) return s;
   const id = String(s.id);
@@ -56,7 +81,7 @@ export function formatSongObject(s) {
 
   // Preserve song's own cover_url / artwork if present; fallback to unique endpoint /api/images/song/${id}
   let artwork = s.cover_url || s.artwork || s.cover;
-  if (!artwork || typeof artwork !== 'string' || artwork.trim() === '') {
+  if (!artwork || typeof artwork !== 'string' || artwork.trim() === '' || artwork.includes('khat-1') || artwork.includes('nadan-1') || artwork.includes('samjhawa-1')) {
     artwork = `/api/images/song/${id}`;
   }
 
@@ -224,7 +249,13 @@ export function AppProvider({ children }) {
 
           const merged = [...formatted];
           FALLBACK_SONGS.forEach(fs => {
-            if (!merged.some(ms => String(ms.id) === String(fs.id))) {
+            const cleanFsTitle = (fs.title || '').replace(/^\d+\.\s*/, '').toLowerCase().trim();
+            const exists = merged.some(ms => {
+              if (String(ms.id) === String(fs.id)) return true;
+              const cleanMsTitle = (ms.title || '').replace(/^\d+\.\s*/, '').toLowerCase().trim();
+              return cleanMsTitle && (cleanMsTitle === cleanFsTitle || (cleanMsTitle.length >= 3 && cleanFsTitle.length >= 3 && cleanMsTitle.includes(cleanFsTitle)));
+            });
+            if (!exists) {
               merged.push(formatSongObject(fs));
             }
           });

@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, MoreHorizontal, Plus, Play, Pause } from 'lucide-react'
 import { FEATURED_SLIDES } from '../../data/musicData'
-import { useApp } from '../../context/AppContext'
+import { useApp, findMatchingSong } from '../../context/AppContext'
 import { resolveApiUrl } from '../../api/apiClient'
 
 const AUTOPLAY_INTERVAL = 5000
@@ -16,19 +16,30 @@ export function FeaturedCarousel() {
     togglePlayPause,
     currentSong,
     isPlaying,
+    allSongs,
     addToLibrary,
     isInLibrary,
     setShowMoreMenu,
     showMoreMenu,
   } = useApp()
 
-  const slide = FEATURED_SLIDES[current]
+  const resolvedSlides = useMemo(() => {
+    return FEATURED_SLIDES.map((slide) => {
+      const dbMatch = findMatchingSong(slide.song, allSongs);
+      return {
+        ...slide,
+        song: dbMatch || slide.song,
+      };
+    });
+  }, [allSongs]);
+
+  const slide = resolvedSlides[current] || FEATURED_SLIDES[current]
   const isCurrentSlide = currentSong?.id === slide.song.id
   const slidePlaying = isCurrentSlide && isPlaying
 
   const goTo = useCallback((index) => {
-    setCurrent((index + FEATURED_SLIDES.length) % FEATURED_SLIDES.length)
-  }, [])
+    setCurrent((index + resolvedSlides.length) % resolvedSlides.length)
+  }, [resolvedSlides.length])
 
   const goNext = useCallback(() => goTo(current + 1), [current, goTo])
   const goPrev = useCallback(() => goTo(current - 1), [current, goTo])
@@ -43,7 +54,7 @@ export function FeaturedCarousel() {
     if (isCurrentSlide) {
       togglePlayPause()
     } else {
-      playSong(slide.song, FEATURED_SLIDES.map((s) => s.song))
+      playSong(slide.song, resolvedSlides.map((s) => s.song))
     }
   }
 
