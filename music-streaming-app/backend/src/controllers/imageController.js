@@ -5,38 +5,90 @@ const { getDriveFileStream } = require('../services/driveService');
 // Initialize image scan on startup
 scanDriveImages().catch(err => console.warn('Initial image scan warning:', err.message));
 
+function generateSVGPlaceholder(title, subtitle = '', type = 'song') {
+  const safeTitle = (title || (type === 'artist' ? 'Artist' : 'Song')).trim();
+  const initials = safeTitle
+    .split(/\s+/)
+    .slice(0, 2)
+    .map(w => w[0])
+    .join('')
+    .toUpperCase() || '♪';
+
+  const isArtist = type === 'artist';
+  const rx = isArtist ? '200' : '24';
+  const startColor = isArtist ? '#4f46e5' : '#1e1b4b';
+  const midColor = isArtist ? '#7c3aed' : '#312e81';
+  const endColor = isArtist ? '#db2777' : '#4338ca';
+
+  const cleanDisplayTitle = safeTitle.length > 24 ? safeTitle.substring(0, 22) + '...' : safeTitle;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+    <defs>
+      <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="${startColor}" />
+        <stop offset="50%" stop-color="${midColor}" />
+        <stop offset="100%" stop-color="${endColor}" />
+      </linearGradient>
+    </defs>
+    <rect width="400" height="400" rx="${rx}" fill="url(#grad)" />
+    <circle cx="200" cy="180" r="110" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="3" />
+    <text x="200" y="175" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="56" font-weight="700">${initials}</text>
+    <text x="200" y="270" text-anchor="middle" dominant-baseline="central" fill="rgba(255,255,255,0.85)" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600">${cleanDisplayTitle}</text>
+  </svg>`;
+}
+
 // GET /api/images/song/:id
 exports.getSongImage = async (req, res, next) => {
   try {
     const songId = req.params.id;
-    const [rows] = await pool.query(
-      'SELECT s.title, s.cover_url, a.name AS artistName FROM songs s LEFT JOIN artists a ON s.artist_id = a.id WHERE s.id = ?',
-      [songId]
-    );
+    let title = songId;
+    let artistName = '';
 
-    const title = rows[0]?.title || songId;
-    const artistName = rows[0]?.artistName || '';
-
-    let imgObj = await getImageStream('song', title);
-
-    if (!imgObj && rows[0]?.cover_url && !rows[0].cover_url.startsWith('http') && !rows[0].cover_url.startsWith('/api')) {
-      imgObj = await getImageStream('song', rows[0].cover_url);
+    try {
+      const [rows] = await pool.query(
+        'SELECT s.title, s.cover_url, a.name AS artistName FROM songs s LEFT JOIN artists a ON s.artist_id = a.id WHERE s.id = ?',
+        [songId]
+      );
+      if (rows.length > 0) {
+        title = rows[0].title || songId;
+        artistName = rows[0].artistName || '';
+      }
+    } catch (e) {
+      console.warn('DB query error in getSongImage:', e.message);
     }
 
-    if (!imgObj && (artistName.toLowerCase().includes('nusrat') || artistName.toLowerCase().includes('nfak') || (parseInt(songId, 10) >= 35 && parseInt(songId, 10) <= 50))) {
-      imgObj = await getImageStream('artist', songId);
+    const cleanTitle = title.replace(/^\d+\.\s*/, '').trim();
+
+    // 1. Try matching by song title
+    let imgObj = await getImageStream('song', cleanTitle);
+    if (!imgObj && cleanTitle !== title) {
+      imgObj = await getImageStream('song', title);
     }
 
+    // 2. Try matching by artist name fallback
+    if (!imgObj && artistName) {
+      imgObj = await getImageStream('artist', artistName);
+    }
+
+    // 3. Fallback to home images
     if (!imgObj) {
-      // Fallback default artwork image
-      return res.redirect('https://images.unsplash.com/photo-1635805737707-575885ab0820?w=400&h=400&fit=crop');
+      imgObj = await getImageStream('home', cleanTitle);
     }
 
-    res.setHeader('Content-Type', imgObj.mimeType || 'image/jpeg');
-    if (imgObj.size) res.setHeader('Content-Length', imgObj.size);
-    res.setHeader('Cache-Control', 'public, max-age=86400');
+    if (imgObj) {
+      res.setHeader('Content-Type', imgObj.mimeType || 'image/jpeg');
+      if (imgObj.size) res.setHeader('Content-Length', imgObj.size);
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      return imgObj.stream.pipe(res);
+    }
 
-    return imgObj.stream.pipe(res);
+    // Task 7: Log useful debug info when image lookup misses
+    console.warn('[IMAGE LOG] Song image not found on disk, serving SVG fallback:', { songId, title, cleanTitle, artistName });
+
+    const svg = generateSVGPlaceholder(cleanTitle, artistName, 'song');
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    return res.status(200).send(svg);
   } catch (err) {
     next(err);
   }
@@ -45,25 +97,45 @@ exports.getSongImage = async (req, res, next) => {
 // GET /api/images/artist/:nameOrId
 exports.getArtistImage = async (req, res, next) => {
   try {
-    let artistName = req.params.nameOrId;
+    const rawParam = req.params.nameOrId || '';
+    let artistName = decodeURIComponent(rawParam).trim();
 
-    if (/^\d+$/.test(artistName)) {
-      const [rows] = await pool.query('SELECT name FROM artists WHERE id = ?', [artistName]);
-      if (rows.length > 0) artistName = rows[0].name;
+    // Resolve artist ID (numeric or string like "a0", "a1", "1", "2")
+    const cleanId = artistName.replace(/\D/g, '');
+    if (cleanId && /^a?\d+$/i.test(artistName)) {
+      try {
+        const [rows] = await pool.query('SELECT name FROM artists WHERE id = ?', [cleanId]);
+        if (rows.length > 0) {
+          artistName = rows[0].name;
+        }
+      } catch (e) {
+        console.warn('Artist ID DB query error:', e.message);
+      }
     }
 
-    const imgObj = await getImageStream('artist', artistName);
-
-    if (!imgObj) {
-      // Fallback default artist avatar
-      return res.redirect('https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&h=400&fit=crop');
+    // Replace hyphens/underscores if searching by slug
+    let imgObj = await getImageStream('artist', artistName);
+    if (!imgObj && artistName.includes('-')) {
+      imgObj = await getImageStream('artist', artistName.replace(/-/g, ' '));
+    }
+    if (!imgObj && artistName.includes('_')) {
+      imgObj = await getImageStream('artist', artistName.replace(/_/g, ' '));
     }
 
-    res.setHeader('Content-Type', imgObj.mimeType || 'image/jpeg');
-    if (imgObj.size) res.setHeader('Content-Length', imgObj.size);
+    if (imgObj) {
+      res.setHeader('Content-Type', imgObj.mimeType || 'image/jpeg');
+      if (imgObj.size) res.setHeader('Content-Length', imgObj.size);
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      return imgObj.stream.pipe(res);
+    }
+
+    // Task 7: Log useful debug info
+    console.warn('[IMAGE LOG] Artist image not found on disk, serving SVG fallback:', { rawParam, artistName });
+
+    const svg = generateSVGPlaceholder(artistName, '', 'artist');
+    res.setHeader('Content-Type', 'image/svg+xml');
     res.setHeader('Cache-Control', 'public, max-age=86400');
-
-    return imgObj.stream.pipe(res);
+    return res.status(200).send(svg);
   } catch (err) {
     next(err);
   }
@@ -72,18 +144,21 @@ exports.getArtistImage = async (req, res, next) => {
 // GET /api/images/home/:name
 exports.getHomeImage = async (req, res, next) => {
   try {
-    const imageName = req.params.name;
+    const imageName = decodeURIComponent(req.params.name || '');
     const imgObj = await getImageStream('home', imageName);
 
-    if (!imgObj) {
-      return res.redirect('https://images.unsplash.com/photo-1635805737707-575885ab0820?w=600&h=600&fit=crop');
+    if (imgObj) {
+      res.setHeader('Content-Type', imgObj.mimeType || 'image/jpeg');
+      if (imgObj.size) res.setHeader('Content-Length', imgObj.size);
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      return imgObj.stream.pipe(res);
     }
 
-    res.setHeader('Content-Type', imgObj.mimeType || 'image/jpeg');
-    if (imgObj.size) res.setHeader('Content-Length', imgObj.size);
+    console.warn('[IMAGE LOG] Home image not found on disk, serving SVG fallback:', { imageName });
+    const svg = generateSVGPlaceholder(imageName, '', 'song');
+    res.setHeader('Content-Type', 'image/svg+xml');
     res.setHeader('Cache-Control', 'public, max-age=86400');
-
-    return imgObj.stream.pipe(res);
+    return res.status(200).send(svg);
   } catch (err) {
     next(err);
   }
@@ -96,7 +171,10 @@ exports.getDriveImage = async (req, res, next) => {
     const driveRes = await getDriveFileStream(driveFileId);
 
     if (driveRes.status >= 400) {
-      return res.status(driveRes.status).json({ error: 'Failed to retrieve image from Google Drive' });
+      console.warn('[IMAGE LOG] Drive image fetch error:', { driveFileId, status: driveRes.status });
+      const svg = generateSVGPlaceholder('Drive Asset', '', 'song');
+      res.setHeader('Content-Type', 'image/svg+xml');
+      return res.status(200).send(svg);
     }
 
     const contentType = driveRes.headers?.['content-type'] || 'image/jpeg';
@@ -109,4 +187,5 @@ exports.getDriveImage = async (req, res, next) => {
     next(err);
   }
 };
+
 

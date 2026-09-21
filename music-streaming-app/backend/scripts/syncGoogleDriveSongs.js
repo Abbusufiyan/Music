@@ -112,12 +112,13 @@ async function runSync() {
 
           const [insertRes] = await pool.query(
             'INSERT INTO songs (title, artist_id, album_id, audio_url, cover_url, duration, drive_file_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [driveTitleClean, defaultArtistId, defaultAlbumId, 'pending', defaultCover, 180, driveFile.id]
+            [driveTitleClean, defaultArtistId, defaultAlbumId, 'pending', 'temp', 180, driveFile.id]
           );
 
           const newSongId = insertRes.insertId;
           const streamUrl = `/api/songs/${newSongId}/stream`;
-          await pool.query('UPDATE songs SET audio_url = ? WHERE id = ?', [streamUrl, newSongId]);
+          const songCoverUrl = `/api/images/song/${newSongId}`;
+          await pool.query('UPDATE songs SET audio_url = ?, cover_url = ? WHERE id = ?', [streamUrl, songCoverUrl, newSongId]);
 
           // Keep local DB songs cache updated for subsequent file comparisons
           dbSongs.push({

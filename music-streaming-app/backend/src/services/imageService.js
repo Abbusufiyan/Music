@@ -107,7 +107,43 @@ async function getImageStream(category, key) {
   // 1. Direct filename match
   let item = catalog[searchKey];
 
-  // 2. Multi-image rotation for Nusrat Fateh Ali Khan songs/artists
+  // 2. Exact or Alias lookup for Artists
+  if (!item && category === 'artist') {
+    const artistAliasMap = {
+      'ar rahman': 'ar rahman.jpeg',
+      'ar-rahman': 'ar rahman.jpeg',
+      'a.r. rahman': 'ar rahman.jpeg',
+      'a.r. rahman / mohit chauhan': 'ar rahman.jpeg',
+      'atif aslam': 'atif-aslam.jpeg',
+      'atif-aslam': 'atif-aslam.jpeg',
+      'arijit singh': 'arijit_singh.jpeg',
+      'arijit-singh': 'arijit_singh.jpeg',
+      'nusrat fateh ali khan': 'nusrat fateh ali khan.jpeg',
+      'nusrat-fateh-ali-khan': 'nusrat fateh ali khan.jpeg',
+      'ustad nusrat fateh ali khan': 'nusrat fateh ali khan.jpeg',
+      'nfak': 'nusrat fateh ali khan.jpeg',
+      'anuv jain': 'anuv-jain.jpeg',
+      'anuv-jain': 'anuv-jain.jpeg',
+      'javed ali': 'javed ali.jpeg',
+      'javed-ali': 'javed ali.jpeg',
+      'mohamad rafi': 'mohamad rafi _.jpeg',
+      'mohamad-rafi': 'mohamad rafi _.jpeg',
+      'mohammed rafi': 'mohamad rafi _.jpeg',
+      'mohammed-rafi': 'mohamad rafi _.jpeg',
+      'sonu nigam': 'sonu migum.webp',
+      'sonu-nigam': 'sonu migum.webp',
+      'sonu migum': 'sonu migum.webp',
+      'dua': 'dua.jpeg',
+      'dua lipa': 'dua.jpeg',
+      'dua-lipa': 'dua.jpeg',
+      'kk': 'kk.jpeg'
+    };
+    if (artistAliasMap[searchKey]) {
+      item = catalog[artistAliasMap[searchKey]];
+    }
+  }
+
+  // 3. Multi-image rotation for Nusrat Fateh Ali Khan songs/artists
   if (!item && (searchKey.includes('nusrat') || searchKey.includes('nfak') || /^(3[5-9]|4[0-9]|50)$/.test(searchKey))) {
     const nfakImages = Object.values(catalog).filter(i => i.name.toLowerCase().includes('nusrat'));
     if (nfakImages.length > 0) {
@@ -116,33 +152,35 @@ async function getImageStream(category, key) {
     }
   }
 
-  // 3. Fuzzy match by searchKey across specified catalog or homeImages fallback
+  // 4. Fuzzy match by searchKey across specified catalog or homeImages fallback
   if (!item) {
     const cleanKey = searchKey
       .replace(/^[0-9]+\.\s*/, '')
       .replace(/aa/g, 'a')
       .replace(/[^a-z0-9]/g, '');
 
-    let entry = Object.values(catalog).find(i => {
-      const iClean = i.name
-        .toLowerCase()
-        .replace(/\.(jpeg|jpg|png|webp)$/i, '')
-        .replace(/by.*$/i, '')
-        .replace(/aa/g, 'a')
-        .replace(/[^a-z0-9]/g, '');
-      return iClean.includes(cleanKey) || cleanKey.includes(iClean);
-    });
-    if (!entry && category !== 'home') {
-      entry = Object.values(driveImageCache.homeImages).find(i => {
+    if (cleanKey.length >= 2) {
+      let entry = Object.values(catalog).find(i => {
         const iClean = i.name
           .toLowerCase()
           .replace(/\.(jpeg|jpg|png|webp)$/i, '')
+          .replace(/by.*$/i, '')
           .replace(/aa/g, 'a')
           .replace(/[^a-z0-9]/g, '');
-        return iClean.includes(cleanKey) || cleanKey.includes(iClean);
+        return (iClean.length >= 2 && cleanKey.includes(iClean)) || (cleanKey.length >= 2 && iClean.includes(cleanKey));
       });
+      if (!entry && category !== 'home') {
+        entry = Object.values(driveImageCache.homeImages).find(i => {
+          const iClean = i.name
+            .toLowerCase()
+            .replace(/\.(jpeg|jpg|png|webp)$/i, '')
+            .replace(/aa/g, 'a')
+            .replace(/[^a-z0-9]/g, '');
+          return (iClean.length >= 2 && cleanKey.includes(iClean)) || (cleanKey.length >= 2 && iClean.includes(cleanKey));
+        });
+      }
+      if (entry) item = entry;
     }
-    if (entry) item = entry;
   }
 
   if (!item) {

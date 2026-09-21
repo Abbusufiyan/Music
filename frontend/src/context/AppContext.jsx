@@ -54,9 +54,9 @@ export function formatSongObject(s) {
   const artist = (meta && meta.artist_name) ? meta.artist_name : (s.artist || 'Google Drive Music');
   const album = (meta && meta.album_name) ? meta.album_name : (s.albumName || s.album || 'Drive Album');
 
-  // Preserve song's own cover_url / artwork if present; fallback to unique endpoint /api/images/song/${id}
-  let artwork = s.cover_url || s.artwork || s.cover;
-  if (!artwork || typeof artwork !== 'string' || artwork.trim() === '') {
+  // Ensure artwork points to backend endpoint /api/images/song/${id} instead of hardcoded Spider-Man Unsplash URLs
+  let artwork = s.artwork || s.cover || s.cover_url;
+  if (!artwork || typeof artwork !== 'string' || artwork.includes('photo-1635805737707-575885ab0820') || artwork.trim() === '') {
     artwork = `/api/images/song/${id}`;
   }
 
