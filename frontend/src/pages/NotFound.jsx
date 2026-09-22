@@ -1,17 +1,11 @@
 import { useNavigate } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
 import { Home, AlertCircle } from 'lucide-react';
 
 export default function NotFound() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useApp();
 
   const handleReturn = () => {
-    if (isAuthenticated) {
-      navigate('/home');
-    } else {
-      navigate('/login');
-    }
+    navigate('/login');
   };
 
   return (
@@ -36,7 +30,7 @@ export default function NotFound() {
           className="flex items-center justify-center gap-2 bg-white text-black px-6 py-3 rounded-full font-semibold hover:scale-105 transition-all shadow-lg cursor-pointer w-full"
         >
           <Home size={18} />
-          <span>Return to {isAuthenticated ? 'Home' : 'Login'}</span>
+          <span>Go back</span>
         </button>
       </div>
     </div>
