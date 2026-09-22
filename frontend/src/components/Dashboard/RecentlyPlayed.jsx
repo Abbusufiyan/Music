@@ -59,7 +59,7 @@ export function RecentlyPlayed() {
               onClick={() => playSong(item.song, songsQueue)}
             >
               <img
-                src={item.image}
+                src={resolveApiUrl(item.image)}
                 alt={item.title}
                 className="w-12 h-12 rounded-lg object-cover shrink-0"
               />

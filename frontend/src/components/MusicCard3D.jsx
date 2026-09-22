@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Play, SkipBack, SkipForward, Heart, Volume2 } from 'lucide-react';
 import { formatTime } from '../data/musicData';
+import { resolveApiUrl } from '../api/apiClient';
 
 const DEFAULT_FALLBACK_ARTWORK = 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?auto=format&fit=crop&q=80&w=400&h=400';
 
 export function MusicCard3D({ song, index = 0, isHighlight = false }) {
-  const [imgSrc, setImgSrc] = useState(song?.artwork || DEFAULT_FALLBACK_ARTWORK);
+  const [imgSrc, setImgSrc] = useState(resolveApiUrl(song?.artwork) || DEFAULT_FALLBACK_ARTWORK);
   const [imgError, setImgError] = useState(false);
 
   const title = song?.title || song?.song_name || `Track #${index + 1}`;

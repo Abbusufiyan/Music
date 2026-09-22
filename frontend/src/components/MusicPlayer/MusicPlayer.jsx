@@ -13,6 +13,7 @@ import {
   Maximize2,
 } from 'lucide-react'
 import { formatTime } from '../../data/musicData'
+import { resolveApiUrl } from '../../api/apiClient'
 import { useApp } from '../../context/AppContext'
 
 // 1. MINIMIZED PLAYER CARD (Fits cleanly inside the Left Sidebar below Recently Played)
@@ -67,7 +68,7 @@ export function MinimizedPlayerCard() {
       {/* Top Info Row: Artwork + Track Title & Artist + Favorite & Add to Playlist */}
       <div className="flex items-center gap-2.5 min-w-0">
         <img
-          src={currentSong.artwork}
+          src={resolveApiUrl(currentSong.artwork)}
           alt={currentSong.title}
           className="w-9 h-9 rounded-xl object-cover shrink-0 border border-white/10 shadow-sm"
           onError={(e) => {
@@ -296,7 +297,7 @@ export function MusicPlayer() {
         {/* Center Inner Pill with Glass Styling */}
         <div className="relative flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl p-2 px-3.5 flex-1 min-w-0 overflow-hidden shadow-inner group">
           <img
-            src={currentSong.artwork}
+            src={resolveApiUrl(currentSong.artwork)}
             alt={currentSong.title}
             className="w-9 h-9 rounded-xl object-cover shrink-0 border border-white/10"
             onError={(e) => {

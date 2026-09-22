@@ -1,4 +1,5 @@
 import SongCard from './SongCard'
+import { resolveApiUrl } from '../../api/apiClient'
 
 export default function AlbumRow({ album, artist, songs }) {
   if (!songs || songs.length === 0) return null
@@ -9,7 +10,7 @@ export default function AlbumRow({ album, artist, songs }) {
       <div className="w-full md:w-64 shrink-0">
         <div className="glass-panel p-4 rounded-xl border border-white/10 sticky top-6">
           <img 
-            src={album.cover} 
+            src={resolveApiUrl(album.cover)} 
             alt={album.title} 
             className="w-full aspect-square object-cover rounded-lg mb-4 shadow-md" 
           />

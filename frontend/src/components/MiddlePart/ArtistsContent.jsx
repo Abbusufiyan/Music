@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext'
 import ArtistCard from './ArtistCard'
 import SongCard from './SongCard'
 import { ArrowLeft, Star, Play, UserPlus, Check } from 'lucide-react'
+import { resolveApiUrl } from '../../api/apiClient'
 
 function normalizeName(name) {
   if (!name) return ''
@@ -97,12 +98,12 @@ export default function ArtistsContent() {
           {/* Ambient Glow */}
           <div
             className="absolute inset-0 blur-3xl opacity-25 scale-125 bg-cover bg-center pointer-events-none"
-            style={{ backgroundImage: `url(${selectedArtist.image})` }}
+            style={{ backgroundImage: `url(${resolveApiUrl(selectedArtist.image)})` }}
           />
 
           {/* Compact Artist Image (200px x 200px) */}
           <img
-            src={selectedArtist.image}
+            src={resolveApiUrl(selectedArtist.image)}
             alt={selectedArtist.name}
             className="relative z-10 w-44 h-44 sm:w-52 sm:h-52 aspect-square rounded-2xl object-cover shadow-2xl border border-white/20 shrink-0"
             onError={(e) => {
@@ -168,7 +169,7 @@ export default function ArtistsContent() {
                   className="glass-panel p-4 rounded-2xl border border-white/10 hover:border-white/20 transition-all duration-300"
                 >
                   <img
-                    src={album.cover}
+                    src={resolveApiUrl(album.cover)}
                     alt={album.title}
                     className="w-full aspect-square object-cover rounded-xl mb-3 shadow-md"
                   />

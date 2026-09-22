@@ -2,6 +2,7 @@ import { Search, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useApp } from '../../context/AppContext'
+import { resolveApiUrl } from '../../api/apiClient'
 
 export function SearchBar() {
   const {
@@ -124,7 +125,7 @@ export function SearchBar() {
                   "
                 >
                   <img
-                    src={song.artwork}
+                    src={resolveApiUrl(song.artwork)}
                     alt=""
                     className="w-10 h-10 rounded-lg object-cover"
                   />

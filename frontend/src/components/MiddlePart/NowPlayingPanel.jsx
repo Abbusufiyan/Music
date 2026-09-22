@@ -1,4 +1,5 @@
 import { useApp } from '../../context/AppContext'
+import { resolveApiUrl } from '../../api/apiClient'
 import {
   Play,
   Pause,
@@ -72,10 +73,10 @@ export default function NowPlayingPanel() {
             {/* Ambient Artwork Background Glow */}
             <div
               className="absolute inset-0 blur-2xl opacity-35 scale-125 bg-cover bg-center pointer-events-none transition-all duration-700"
-              style={{ backgroundImage: `url(${currentSong.artwork})` }}
+              style={{ backgroundImage: `url(${resolveApiUrl(currentSong.artwork)})` }}
             />
             <img
-              src={currentSong.artwork}
+              src={resolveApiUrl(currentSong.artwork)}
               alt={currentSong.title}
               className="relative z-10 w-full h-full object-cover rounded-[24px]"
               onError={(e) => {

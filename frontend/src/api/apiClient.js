@@ -1,7 +1,13 @@
+const DEFAULT_PRODUCTION_BACKEND = 'https://music-production-03ab.up.railway.app/api';
+
 const getRawBaseUrl = () => {
   const envUrl = import.meta.env.VITE_API_URL;
   if (envUrl && envUrl.trim() !== '') {
     return envUrl.trim().replace(/\/+$/, '');
+  }
+  // Automatic production Railway fallback if VITE_API_URL is omitted on Vercel or cloud hosts
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return DEFAULT_PRODUCTION_BACKEND;
   }
   return 'http://localhost:3000/api';
 };
@@ -15,7 +21,7 @@ export function getApiBaseUrl() {
 /**
  * Resolves any relative API or image URL into a fully-qualified backend production URL.
  * Ensures relative asset paths like "/api/images/song/21" or "/api/songs/21/stream"
- * are correctly resolved against VITE_API_URL (e.g. "https://music-production-03ab.up.railway.app/api").
+ * are consistently resolved against the Railway backend URL (e.g. "https://music-production-03ab.up.railway.app/api").
  */
 export function resolveApiUrl(url) {
   if (!url || typeof url !== 'string') return url;
@@ -40,7 +46,7 @@ export function resolveApiUrl(url) {
     }
   }
 
-  // Append cache buster v=2 for image URLs so client browsers fetch fresh real artwork instead of stale cached SVG placeholders
+  // Append cache buster v=2 for image URLs so client browsers fetch fresh real artwork
   if (resolved.includes('/api/images/') && !resolved.includes('v=')) {
     const sep = resolved.includes('?') ? '&' : '?';
     resolved = `${resolved}${sep}v=2`;
@@ -115,4 +121,3 @@ export const apiClient = {
   put: (endpoint, body) => request(endpoint, { method: 'PUT', body: JSON.stringify(body) }),
   del: (endpoint) => request(endpoint, { method: 'DELETE' }),
 };
-

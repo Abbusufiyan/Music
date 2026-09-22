@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useApp } from '../../context/AppContext'
 import { Plus, Edit2, Trash2, X, Play, Music, Heart, Disc } from 'lucide-react'
 import { ALL_SONGS as FALLBACK_SONGS } from '../../data/musicData'
+import { resolveApiUrl } from '../../api/apiClient'
 
 export default function PlaylistsContent() {
   const {
@@ -123,7 +124,7 @@ export default function PlaylistsContent() {
                   {/* Fixed Size Cover Artwork (220px x 220px) */}
                   <div className="relative w-48 h-48 sm:w-[220px] sm:h-[220px] aspect-square rounded-2xl overflow-hidden shadow-2xl shrink-0 border border-white/15 bg-black/40 group">
                     <img
-                      src={coverImage}
+                      src={resolveApiUrl(coverImage)}
                       alt={pl.name}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       onError={(e) => {
@@ -220,7 +221,7 @@ export default function PlaylistsContent() {
 
                               <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-black/40">
                                 <img
-                                  src={song.artwork}
+                                  src={resolveApiUrl(song.artwork)}
                                   alt={song.title}
                                   className="w-full h-full object-cover"
                                   onError={(e) => {

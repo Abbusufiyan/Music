@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence, useAnimationFrame } from 'framer-motion';
 import { carouselAlbums } from '../data/albums';
+import { resolveApiUrl } from '../api/apiClient';
 import '../styles/AlbumCarousel.css';
 
 const VISIBLE_RANGE = 3;
@@ -255,7 +256,7 @@ export default function AlbumCarousel({ onCarouselInteract }) {
               >
                 <div className="carousel__cover-wrap">
                   <img
-                    src={album.cover}
+                    src={resolveApiUrl(album.cover)}
                     alt={`${album.title} by ${album.artist}`}
                     className="carousel__cover"
                     loading={Math.abs(offset) <= 1 ? 'eager' : 'lazy'}

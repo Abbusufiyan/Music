@@ -56,7 +56,7 @@ export function NewReleases() {
               onClick={() => playSong(release.song, items.map((r) => r.song))}
             >
               <img
-                src={release.image}
+                src={resolveApiUrl(release.image)}
                 alt={release.title}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />

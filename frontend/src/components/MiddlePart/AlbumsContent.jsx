@@ -3,6 +3,7 @@ import { ALBUMS, ALL_SONGS } from '../../data/musicData'
 import { useApp } from '../../context/AppContext'
 import SongCategoryRow from './SongCategoryRow'
 import { ArrowLeft, Play } from 'lucide-react'
+import { resolveApiUrl } from '../../api/apiClient'
 
 function matchSongToAlbum(song, album) {
   if (!song || !album) return false
@@ -60,7 +61,7 @@ export default function AlbumsContent() {
 
         <div className="flex items-center gap-6 mb-10">
           <img 
-            src={selectedAlbum.cover} 
+            src={resolveApiUrl(selectedAlbum.cover)} 
             alt={selectedAlbum.title} 
             className="w-32 h-32 rounded-2xl object-cover shadow-2xl border border-white/10"
           />
@@ -98,7 +99,7 @@ export default function AlbumsContent() {
           >
             <div className="relative w-full aspect-square mb-4 overflow-hidden rounded-lg shadow-md border border-white/10">
               <img
-                src={album.cover}
+                src={resolveApiUrl(album.cover)}
                 alt={album.title}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />

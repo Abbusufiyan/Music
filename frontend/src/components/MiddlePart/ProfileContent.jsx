@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext'
 import { ARTISTS } from '../../data/musicData'
 import SongCard from './SongCard'
 import { Edit2, Play, Music, ListMusic, Heart, Clock, X, Camera, Upload } from 'lucide-react'
+import { resolveApiUrl } from '../../api/apiClient'
 
 export default function ProfileContent() {
   const { userProfile, updateProfile, playlists, likedSongs, recentActivity, playSong, allSongs } = useApp()
@@ -147,7 +148,7 @@ export default function ProfileContent() {
               return (
                 <div key={pl.id} className="glass-panel p-4 rounded-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl cursor-pointer group w-[180px] shrink-0 relative">
                   <div className="relative w-full aspect-square mb-4 overflow-hidden rounded-lg">
-                    <img src={coverImg} alt={pl.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                    <img src={resolveApiUrl(coverImg)} alt={pl.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
                       <button 
                         onClick={(e) => {
@@ -208,7 +209,7 @@ export default function ProfileContent() {
               recentActivity.map(act => (
                 <div key={act.id} className="flex items-center gap-4 bg-white/5 p-4 rounded-xl border border-white/5">
                   {act.image ? (
-                    <img src={act.image} alt="Activity" className="w-12 h-12 rounded-lg object-cover" />
+                    <img src={resolveApiUrl(act.image)} alt="Activity" className="w-12 h-12 rounded-lg object-cover" />
                   ) : (
                     <div className="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center">
                       <Music size={20} className="text-white/50" />
@@ -232,7 +233,7 @@ export default function ProfileContent() {
           <div className="grid grid-cols-2 gap-4">
             {topArtists.map(artist => (
               <div key={artist.id} className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
-                <img src={artist.image} alt={artist.name} className="w-12 h-12 rounded-full object-cover" />
+                <img src={resolveApiUrl(artist.image)} alt={artist.name} className="w-12 h-12 rounded-full object-cover" />
                 <p className="text-white/90 text-sm font-medium truncate">{artist.name}</p>
               </div>
             ))}
