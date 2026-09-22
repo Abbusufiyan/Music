@@ -5,6 +5,8 @@ const { getDriveClient, getDriveFileStream } = require('./driveService');
 const LOCAL_SONG_IMG_DIR = '/home/omr/Desktop/song_research/song_images';
 const LOCAL_ARTIST_IMG_DIR = '/home/omr/Desktop/song_research/artist_images';
 const LOCAL_HOME_IMG_DIR = '/home/omr/Desktop/song_research/img';
+const BUNDLED_FRONTEND_IMG_DIR = path.resolve(__dirname, '../../../../frontend/public/images');
+const BUNDLED_BACKEND_IMG_DIR = path.resolve(__dirname, '../../../frontend/public/images');
 
 // Cache for Drive & Local file mappings
 let driveImageCache = {
@@ -55,12 +57,13 @@ async function scanDriveImages() {
     console.warn('Google Drive image scan notice:', err.message);
   }
 
-  // 2. Scan Local Fallback Desktop directories
+  // 2. Scan Local Fallback Desktop & Bundled directories
   const scanLocalDir = (dirPath, targetObj) => {
     if (!fs.existsSync(dirPath)) return;
     const files = fs.readdirSync(dirPath);
     files.forEach(file => {
       const ext = path.extname(file).toLowerCase();
+      if (!['.jpg', '.jpeg', '.png', '.webp', '.avif'].includes(ext)) return;
       let mimeType = 'image/jpeg';
       if (ext === '.png') mimeType = 'image/png';
       if (ext === '.webp') mimeType = 'image/webp';
@@ -79,6 +82,8 @@ async function scanDriveImages() {
   scanLocalDir(LOCAL_SONG_IMG_DIR, songImages);
   scanLocalDir(LOCAL_ARTIST_IMG_DIR, artistImages);
   scanLocalDir(LOCAL_HOME_IMG_DIR, homeImages);
+  scanLocalDir(BUNDLED_FRONTEND_IMG_DIR, songImages);
+  scanLocalDir(BUNDLED_BACKEND_IMG_DIR, songImages);
 
   driveImageCache = {
     songImages,
@@ -88,6 +93,18 @@ async function scanDriveImages() {
   };
 
   return driveImageCache;
+}
+
+/**
+ * Deterministic hash helper for string mapping
+ */
+function hashString(str = '') {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
 }
 
 /**
@@ -141,13 +158,9 @@ async function getImageStream(category, key) {
     if (artistAliasMap[searchKey]) {
       item = catalog[artistAliasMap[searchKey]];
     }
-    if (!item && (searchKey.includes('nusrat') || searchKey.includes('nfak'))) {
-      const nfakImages = Object.values(catalog).filter(i => i.name.toLowerCase().includes('nusrat'));
-      if (nfakImages.length > 0) item = nfakImages[0];
-    }
   }
 
-  // 3. Strict Title Matching for Songs (without cross-catalog fallback to homeImages)
+  // 3. Strict Title Matching for Songs
   if (!item) {
     const rawClean = searchKey.replace(/^[0-9]+\.\s*/, '').trim();
     const cleanNorm = rawClean.replace(/aa/g, 'a').replace(/[^a-z0-9]/g, '');
@@ -175,6 +188,19 @@ async function getImageStream(category, key) {
       }
 
       if (entry) item = entry;
+    }
+  }
+
+  // 4. Deterministic Multi-Image Selection for NFAK / Nusrat Songs if specific title file is un-named
+  if (!item) {
+    const nfakImages = Object.values(catalog).filter(i => {
+      const name = i.name.toLowerCase();
+      return name.includes('nusrat') || name.includes('nfak');
+    });
+
+    if (nfakImages.length > 0) {
+      const selectedIndex = hashString(searchKey) % nfakImages.length;
+      item = nfakImages[selectedIndex];
     }
   }
 
@@ -207,4 +233,3 @@ module.exports = {
   getImageStream,
   getDriveImageCache: () => driveImageCache
 };
-

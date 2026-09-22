@@ -2,6 +2,15 @@ const pool = require('../config/db');
 const { getImageStream, scanDriveImages } = require('../services/imageService');
 const { getDriveFileStream } = require('../services/driveService');
 
+let SONGS_META = [];
+try {
+  SONGS_META = require('../../../music-assets/songs.json');
+} catch (e) {
+  try {
+    SONGS_META = require('../../../../music-assets/songs.json');
+  } catch (e2) {}
+}
+
 // Initialize image scan on startup
 scanDriveImages().catch(err => console.warn('Initial image scan warning:', err.message));
 
@@ -57,6 +66,15 @@ exports.getSongImage = async (req, res, next) => {
       console.warn('DB query error in getSongImage:', e.message);
     }
 
+    // Fallback to static songs.json metadata if song ID not in DB (e.g. static songs 20..35)
+    if ((title === songId || !artistName) && Array.isArray(SONGS_META)) {
+      const meta = SONGS_META.find(s => String(s.id) === String(songId));
+      if (meta) {
+        title = meta.song_name || title;
+        artistName = meta.artist_name || artistName;
+      }
+    }
+
     const cleanTitle = title.replace(/^[0-9]+\.\s*/, '').trim();
 
     // Priority 1: Song-specific artwork
@@ -80,7 +98,7 @@ exports.getSongImage = async (req, res, next) => {
       return imgObj.stream.pipe(res);
     }
 
-    // Priority 3: Item-specific SVG placeholder (no Spider-Man redirects!)
+    // Priority 3: Item-specific SVG placeholder
     console.warn('[IMAGE LOG] Song artwork and Artist artwork not found, serving SVG placeholder:', { songId, title, cleanTitle, artistName });
 
     const svg = generateSVGPlaceholder(cleanTitle, artistName, 'song');
@@ -183,5 +201,3 @@ exports.getDriveImage = async (req, res, next) => {
     next(err);
   }
 };
-
-
