@@ -3,8 +3,7 @@
 Welcome to the **Aura Music Streaming Platform** repository!
 
 ## 📖 Master Documentation
-For the complete technical breakdown, system architecture, database schema, API documentation, WebGL ferrofluid visualizer guide, and asset processing pipeline, please view the [PROJECT_OVERVIEW.md](file:///home/omr/Desktop/music-app/PROJECT_OVERVIEW.md) file.
-
+For the complete technical breakdown, system architecture, database schema, API documentation, WebGL ferrofluid visualizer guide, and asset processing pipeline
 ---
 
 ## 📁 Repository Overview
@@ -32,4 +31,4 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser!
+Open https://music-six-lemon.vercel.app/ in your browser!
