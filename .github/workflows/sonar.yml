@@ -30,8 +30,19 @@ jobs:
           npm ci || npm install
           npm run build
 
+      - name: Check Sonar Credentials
+        id: check_sonar
+        run: |
+          if [ -n "${{ secrets.SONAR_TOKEN }}" ]; then
+            echo "has_token=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_token=false" >> $GITHUB_OUTPUT
+            echo "::warning ::SONAR_TOKEN secret is not configured in GitHub Secrets. Please add SONAR_TOKEN (and optionally SONAR_HOST_URL) under Repository Settings -> Secrets and variables -> Actions."
+          fi
+
       - name: SonarQube Scan
+        if: steps.check_sonar.outputs.has_token == 'true'
         uses: SonarSource/sonarqube-scan-action@v3
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL || 'https://sonarcloud.io' }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
