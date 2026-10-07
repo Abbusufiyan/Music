@@ -3,7 +3,12 @@ const DEFAULT_PRODUCTION_BACKEND = 'https://music-production-03ab.up.railway.app
 const getRawBaseUrl = () => {
   const envUrl = import.meta.env.VITE_API_URL;
   if (envUrl && envUrl.trim() !== '') {
-    return envUrl.trim().replace(/\/+$/, '');
+    const url = envUrl.trim();
+    let end = url.length;
+    while (end > 0 && url[end - 1] === '/') {
+      end--;
+    }
+    return url.slice(0, end);
   }
   // Automatic production Railway fallback if VITE_API_URL is omitted on Vercel or cloud hosts
   if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
